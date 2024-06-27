@@ -1,19 +1,16 @@
 "use client";
 
-import {
-  GoogleAuthProvider,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-} from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { SetStateAction, useState } from "react";
 // import { getAuth } from "firebase/auth";
 import { auth } from "../../firebase";
 // import { useAuth } from '../context/AuthUserContext';
 
-const SignIn = () => {
+const SignUp = () => {
   const [email, setEmail] = useState("");
   const [passwordOne, setPasswordOne] = useState("");
+  const [passwordTwo, setPasswordTwo] = useState("");
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   // const auth = getAuth();
@@ -22,48 +19,17 @@ const SignIn = () => {
     setError(null);
     //check if passwords match. If they do, create user in Firebase
     // and redirect to your logged in page.
-    signInWithEmailAndPassword(auth, email, passwordOne)
-      .then((authUser) => {
-        console.log("Success. The user is signed in using Firebase");
-        router.push("/");
-      })
-      .catch((error) => {
-        // An error occurred. Set error message to be displayed to user
-        setError(error.message);
-      });
-    event.preventDefault();
-  };
-
-  const onGoogleSubmit = (event: { preventDefault: () => void }) => {
-    setError(null);
-    //check if passwords match. If they do, create user in Firebase
-    // and redirect to your logged in page.
-    signInWithPopup(auth, new GoogleAuthProvider())
-      .then((result) => {
-        // This gives you a Google Access Token. You can use it to access the Google API.
-        const credential = GoogleAuthProvider.credentialFromResult(result);
-        const token = credential?.accessToken;
-        // The signed-in user info.
-        const user = result.user;
-        // IdP data available using getAdditionalUserInfo(result)
-        // ...
-        console.log(
-          `Success. The user is signed in using Google. ${token} ${user}`
-        );
-        router.push("/");
-      })
-      .catch((error) => {
-        // Handle Errors here.
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        // The email of the user's account used.
-        const email = error.customData.email;
-        // The AuthCredential type that was used.
-        const credential = GoogleAuthProvider.credentialFromError(error);
-
-        setError(`${errorCode} ${errorMessage}\n${email}\n${credential}`);
-        // ...
-      });
+    if (passwordOne === passwordTwo)
+      createUserWithEmailAndPassword(auth, email, passwordOne)
+        .then((authUser) => {
+          console.log("Success. The user is created in Firebase");
+          router.push("/");
+        })
+        .catch((error) => {
+          // An error occurred. Set error message to be displayed to user
+          setError(error.message);
+        });
+    else setError("Password do not match");
     event.preventDefault();
   };
 
@@ -104,21 +70,30 @@ const SignIn = () => {
               </div>
             </div>
             <div>
+              <label htmlFor="signUpPassword2">Confirm Password</label>
               <div>
-                <button>Sign In</button>
+                <input
+                  type="password"
+                  name="password"
+                  value={passwordTwo}
+                  onChange={(event: {
+                    target: { value: SetStateAction<string> };
+                  }) => setPasswordTwo(event.target.value)}
+                  id="signUpPassword2"
+                  placeholder="Password"
+                />
+              </div>
+            </div>
+            <div>
+              <div>
+                <button>Sign Up</button>
               </div>
             </div>
           </form>
-
-          <div>
-            <button onClick={(e) => onGoogleSubmit(e)}>
-              Sign In With Google
-            </button>
-          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default SignIn;
+export default SignUp;
